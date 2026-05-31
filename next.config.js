@@ -1,0 +1,59 @@
+const { withSentryConfig } = require('@sentry/nextjs')
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // Production security headers
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+          { key: 'X-DNS-Prefetch-Control', value: 'on' },
+        ],
+      },
+      {
+        // Prevent caching API responses at CDN/browser level
+        source: '/api/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate' },
+        ],
+      },
+    ]
+  },
+
+  // Increase serverless function timeout for audit route (Vercel Pro: up to 300s)
+  // Default Vercel timeout is 10s — our audit needs up to 45s
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '2mb',
+    },
+  },
+
+  // Compress responses
+  compress: true,
+
+  // Disable x-powered-by header (security)
+  poweredByHeader: false,
+}
+
+module.exports = withSentryConfig(nextConfig, {
+  // Sentry organization and project slugs
+  org: process.env.SENTRY_ORG || "___ORG_SLUG___",
+  project: process.env.SENTRY_PROJECT || "___PROJECT_SLUG___",
+
+  // Source map upload auth token
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+
+  // Upload wider set of client source files for better stack traces
+  widenClientFileUpload: true,
+
+  // Proxy API route to bypass ad-blockers
+  tunnelRoute: "/monitoring",
+
+  // Suppress build output in non-CI environments
+  silent: !process.env.CI,
+})
