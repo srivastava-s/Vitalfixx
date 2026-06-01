@@ -1,0 +1,3 @@
+## 2024-05-24 - Missing Accessibility Labels in New Components
+**Learning:** Found a pattern where recently added modals and form inputs (like `AuthModal.tsx` and `ThemeToggle.tsx`) were missing explicit `aria-label`s, relying solely on placeholders or titles. Placeholders can disappear when the user starts typing, making the input context unclear for screen readers, and titles are not uniformly announced across all screen reader configurations.
+**Action:** Always ensure that icon-only buttons and form inputs that lack a visible `<label>` include an explicit `aria-label` attribute. This is particularly crucial for interactive elements like close buttons (`X`) and authentication forms to ensure full accessibility.
