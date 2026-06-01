@@ -14,7 +14,7 @@ test.describe('Landing Page', () => {
     // H1 contains "Fix Your Core Web Vitals" from the actual page.tsx
     await expect(page.locator('h1').first()).toBeVisible()
     await expect(page.getByRole('link', { name: /Browse Code Library/i })).toBeVisible()
-    await expect(page.getByRole('link', { name: /Run Free Audit/i }).first()).toBeVisible()
+    await expect(page.getByRole('link', { name: /Audit Your Site Free/i }).first()).toBeVisible()
   })
 
   test('displays all CWV metric pills (LCP, INP, CLS, TTFB)', async ({ page }) => {
@@ -40,7 +40,7 @@ test.describe('Landing Page', () => {
 
   test('navigates to dashboard from hero CTA', async ({ page }) => {
     await page.goto('/')
-    await page.getByRole('link', { name: /Run Free Audit/i }).first().click()
+    await page.getByRole('link', { name: /Audit Your Site Free/i }).first().click()
     await expect(page).toHaveURL('/dashboard')
   })
 })
