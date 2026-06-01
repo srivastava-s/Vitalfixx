@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Check, Copy } from 'lucide-react'
 
 interface Props {
@@ -16,6 +16,9 @@ export default function CodeBlock({ code, language = 'javascript', filename }: P
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
+
+  // Memoize syntax highlighting to prevent re-running regexes on 'copied' state change
+  const highlightedCode = useMemo(() => highlight(code, language), [code, language])
 
   // Simple syntax highlighting via CSS
   return (
@@ -77,7 +80,7 @@ export default function CodeBlock({ code, language = 'javascript', filename }: P
           whiteSpace: 'pre',
           tabSize: 2,
         }}>
-          <code dangerouslySetInnerHTML={{ __html: highlight(code, language) }} />
+          <code dangerouslySetInnerHTML={{ __html: highlightedCode }} />
         </pre>
       </div>
     </div>

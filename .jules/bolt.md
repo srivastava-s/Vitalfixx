@@ -1,0 +1,3 @@
+## 2026-06-01 - Unnecessary Recalculations in Interactive Components
+**Learning:** Found that `Sparkline.tsx` re-computes its SVG paths on *every single mouse move* during hover interactions due to local state updates. Similarly, `CodeBlock.tsx` re-runs a regex-based syntax highlighter on render, which gets triggered again when clicking 'Copy' due to state changes. These unmemoized calculations run unnecessarily when state independent of the data changes.
+**Action:** Always use `useMemo` for mathematical array transformations (like charting coordinates) and heavy string manipulations (like regex highlighting) when a component contains interaction state (like hover/click) that triggers frequent re-renders.

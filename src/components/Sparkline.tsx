@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useMemo } from 'react'
 
 interface SparklineProps {
   data: number[]           // array of values (0–100 expected for scores)
@@ -26,36 +26,41 @@ export default function Sparkline({
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const svgRef = useRef<SVGSVGElement>(null)
 
-  const padding = { top: 8, right: 8, bottom: 8, left: 8 }
-  const chartW = width - padding.left - padding.right
-  const chartH = height - padding.top - padding.bottom
+  const padding = useMemo(() => ({ top: 8, right: 8, bottom: 8, left: 8 }), [])
 
-  const min = data.length >= 2 ? Math.min(...data) - 5 : 0
-  const max = data.length >= 2 ? Math.max(...data) + 5 : 100
-  const range = max - min || 1
+  const { points, linePath, areaPath } = useMemo(() => {
+    const chartW = width - padding.left - padding.right
+    const chartH = height - padding.top - padding.bottom
 
-  const points = data.length >= 2
-    ? data.map((v, i) => ({
-        x: padding.left + (i / (data.length - 1)) * chartW,
-        y: padding.top + chartH - ((v - min) / range) * chartH,
-        value: v,
-      }))
-    : []
+    const min = data.length >= 2 ? Math.min(...data) - 5 : 0
+    const max = data.length >= 2 ? Math.max(...data) + 5 : 100
+    const range = max - min || 1
 
-  // Build SVG path with smooth curves (catmull-rom → cubic bezier)
-  const linePath = points.reduce((path, p, i) => {
-    if (i === 0) return `M ${p.x} ${p.y}`
+    const pts = data.length >= 2
+      ? data.map((v, i) => ({
+          x: padding.left + (i / (data.length - 1)) * chartW,
+          y: padding.top + chartH - ((v - min) / range) * chartH,
+          value: v,
+        }))
+      : []
 
-    const prev = points[i - 1]
-    const cp1x = prev.x + (p.x - prev.x) * 0.4
-    const cp2x = prev.x + (p.x - prev.x) * 0.6
-    return `${path} C ${cp1x} ${prev.y}, ${cp2x} ${p.y}, ${p.x} ${p.y}`
-  }, '')
+    // Build SVG path with smooth curves (catmull-rom → cubic bezier)
+    const lPath = pts.reduce((path, p, i) => {
+      if (i === 0) return `M ${p.x} ${p.y}`
 
-  // Area path (closed below the line)
-  const areaPath = points.length > 0
-    ? `${linePath} L ${points[points.length - 1].x} ${height - padding.bottom} L ${points[0].x} ${height - padding.bottom} Z`
-    : ''
+      const prev = pts[i - 1]
+      const cp1x = prev.x + (p.x - prev.x) * 0.4
+      const cp2x = prev.x + (p.x - prev.x) * 0.6
+      return `${path} C ${cp1x} ${prev.y}, ${cp2x} ${p.y}, ${p.x} ${p.y}`
+    }, '')
+
+    // Area path (closed below the line)
+    const aPath = pts.length > 0
+      ? `${lPath} L ${pts[pts.length - 1].x} ${height - padding.bottom} L ${pts[0].x} ${height - padding.bottom} Z`
+      : ''
+
+    return { points: pts, linePath: lPath, areaPath: aPath }
+  }, [data, width, height, padding.left, padding.right, padding.top, padding.bottom])
 
   const handleMouseMove = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
     if (!svgRef.current || points.length === 0) return
