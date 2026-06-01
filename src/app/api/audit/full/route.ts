@@ -12,7 +12,6 @@ import { createServerClient } from '@supabase/ssr'
 import {
   getConnectionProfile, getLocationProfile,
   getRegionalInsights, rateMetric,
-  type ConnectionProfile, type LocationProfile,
 } from '@/lib/audit-context'
 
 // Vercel serverless function config — audit can take up to 120s
