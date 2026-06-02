@@ -32,6 +32,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
+  // Explicitly type the untyped JSON body. (False positive for unused import 'type AnalyticsEvent')
   const events: AnalyticsEvent[] = Array.isArray(body.events) ? body.events : []
   if (events.length === 0) {
     return NextResponse.json({ error: 'No events' }, { status: 400 })
