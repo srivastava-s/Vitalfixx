@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
+import { useEffect, useRef, useState } from 'react'
 import { Zap, Menu, X, User, LogOut } from 'lucide-react'
 import ThemeToggle from './ThemeToggle'
 import { useAuth } from './AuthProvider'
@@ -20,9 +20,32 @@ const links = [
 
 export default function Navbar() {
   const pathname = usePathname()
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [showAuth, setShowAuth] = useState(false)
   const { user, signOut, isConfigured } = useAuth()
+  const prefetchedRoutes = useRef<Set<string>>(new Set())
+
+  const prefetchRoute = (href: string) => {
+    if (prefetchedRoutes.current.has(href)) return
+    prefetchedRoutes.current.add(href)
+    router.prefetch(href)
+  }
+
+  useEffect(() => {
+    const highTrafficRoutes = ['/library', '/checklist', '/tools', '/guides', '/docs', '/pricing', '/dashboard']
+    const callback = () => highTrafficRoutes.forEach(prefetchRoute)
+
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      const idleId = window.requestIdleCallback(callback, { timeout: 1500 })
+      return () => window.cancelIdleCallback(idleId)
+    }
+
+    const timeoutId = window.setTimeout(callback, 600)
+    return () => window.clearTimeout(timeoutId)
+  // router is stable in Next.js app router; keep effect one-time.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <>
@@ -53,7 +76,7 @@ export default function Navbar() {
           {links.map(l => {
             const isActive = pathname === l.href
             return (
-              <Link key={l.href} href={l.href} style={{
+              <Link key={l.href} href={l.href} onMouseEnter={() => prefetchRoute(l.href)} onFocus={() => prefetchRoute(l.href)} style={{
                 padding: '0.35rem 0.75rem', borderRadius: 6, textDecoration: 'none',
                 fontSize: '0.82rem', fontWeight: isActive ? 600 : 450,
                 color: isActive ? 'var(--text-primary)' : 'var(--text-muted)',
@@ -133,7 +156,7 @@ export default function Navbar() {
       }}>
         <div className="container-pad" style={{ paddingTop: '0.75rem', paddingBottom: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.125rem' }}>
           {links.map(l => (
-            <Link key={l.href} href={l.href} onClick={() => setOpen(false)} style={{
+            <Link key={l.href} href={l.href} onMouseEnter={() => prefetchRoute(l.href)} onFocus={() => prefetchRoute(l.href)} onClick={() => setOpen(false)} style={{
               padding: '0.5rem 0.75rem', borderRadius: 6, textDecoration: 'none',
               fontSize: '0.85rem', fontWeight: 500,
               color: pathname === l.href ? 'var(--text-primary)' : 'var(--text-muted)',
