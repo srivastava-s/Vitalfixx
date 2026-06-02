@@ -218,7 +218,7 @@ export async function migrateLocalToCloud(userId: string): Promise<{ migrated: n
     return { migrated: 0 }
   }
 
-  console.log(`[scan-store] Migrating ${localScans.length} local scans to Supabase…`)
+  console.info(`[scan-store] Migrating ${localScans.length} local scans to Supabase…`)
 
   // Upsert all scans to cloud
   const rows = localScans.map(scan => toDbRow(scan, userId))
@@ -239,6 +239,6 @@ export async function migrateLocalToCloud(userId: string): Promise<{ migrated: n
     localStorage.removeItem('vitalfix-last-audit')
   } catch {}
 
-  console.log(`[scan-store] ✅ Migrated ${localScans.length} scans to cloud.`)
+  console.info(`[scan-store] ✅ Migrated ${localScans.length} scans to cloud.`)
   return { migrated: localScans.length }
 }
