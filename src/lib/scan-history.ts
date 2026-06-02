@@ -177,11 +177,11 @@ export function relativeTime(iso: string): string {
 // ── Date grouping for timeline ──
 export function groupByDate(scans: StoredScan[]): { label: string; scans: StoredScan[] }[] {
   const groups = new Map<string, StoredScan[]>()
+  const nowTime = Date.now()
 
   for (const scan of scans) {
     const date = new Date(scan.fetchedAt)
-    const now = new Date()
-    const diffDays = Math.floor((now.getTime() - date.getTime()) / (24 * 60 * 60 * 1000))
+    const diffDays = Math.floor((nowTime - date.getTime()) / (24 * 60 * 60 * 1000))
 
     let label: string
     if (diffDays === 0) label = 'Today'
