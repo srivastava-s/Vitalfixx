@@ -436,8 +436,8 @@ export async function GET(req: NextRequest) {
     const psiWithFallback = async () => {
       try {
         return await fetchLighthouse(parsedUrl.href, strategy, PSI_TIMEOUT)
-      } catch (err: any) {
-        psiError = err?.message || 'PSI failed'
+      } catch (err: unknown) {
+        psiError = err instanceof Error ? err.message : 'PSI failed'
 
         // If PSI timed out or returned 5xx, try a LITE request (perf-only, much faster)
         if (err instanceof PSIError && (err.status === 504 || err.status >= 500)) {
@@ -558,7 +558,7 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json(response)
-  } catch (err: any) {
+  } catch (err: unknown) {
     clearTimeout(globalTimer)
 
     // This catch should rarely fire now — but just in case
@@ -570,15 +570,16 @@ export async function GET(req: NextRequest) {
     console.error('[audit API] Unexpected error:', err)
     // ── Analytics: track failure ──
     const failLatency = Date.now() - auditStartTime
+    const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.'
     trackAuditEvent('audit_fail', ip, {
       url: parsedUrl?.hostname, strategy, latency_ms: failLatency,
       error_type: err instanceof PSIError ? 'psi_error' : 'unexpected',
-      error_message: err?.message?.slice(0, 200),
+      error_message: errorMessage.slice(0, 200),
     }).catch(() => { })
     updateDailyCounters({ failed: 1, api_failures: 1 }).catch(() => { })
 
     return NextResponse.json(
-      { error: err?.message || 'An unexpected error occurred. Please try again.' },
+      { error: errorMessage },
       { status: 502 }
     )
   }

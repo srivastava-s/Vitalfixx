@@ -16,7 +16,7 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 function getStripe(): Stripe | null {
   if (!stripeSecretKey) return null
-  return new Stripe(stripeSecretKey, { apiVersion: '2026-03-25.dahlia' })
+  return new Stripe(stripeSecretKey, { apiVersion: '2026-05-27.dahlia' as any })
 }
 
 function getServiceSupabase() {
@@ -86,8 +86,9 @@ export async function POST(req: NextRequest) {
   let event: Stripe.Event
   try {
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
-  } catch (err: any) {
-    console.error('[Webhook] Signature verification failed:', err.message)
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+    console.error('[Webhook] Signature verification failed:', errorMessage)
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 
@@ -172,8 +173,9 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ received: true })
-  } catch (err: any) {
-    console.error('[Webhook] Processing error:', err.message)
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+    console.error('[Webhook] Processing error:', errorMessage)
     return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 })
   }
 }

@@ -9,7 +9,7 @@ const stripeSecretKey = process.env.STRIPE_SECRET_KEY
 
 function getStripe(): Stripe | null {
   if (!stripeSecretKey) return null
-  return new Stripe(stripeSecretKey, { apiVersion: '2026-03-25.dahlia' })
+  return new Stripe(stripeSecretKey, { apiVersion: '2026-05-27.dahlia' as any })
 }
 
 export async function POST(req: NextRequest) {
@@ -58,10 +58,11 @@ export async function POST(req: NextRequest) {
     })
 
     return NextResponse.json({ url: session.url })
-  } catch (err: any) {
-    console.error('[Stripe Checkout] Error:', err.message)
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : 'Internal error'
+    console.error('[Stripe Checkout] Error:', errorMessage)
     return NextResponse.json(
-      { error: err.message || 'Failed to create checkout session' },
+      { error: errorMessage },
       { status: 500 }
     )
   }

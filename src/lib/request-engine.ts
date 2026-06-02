@@ -319,7 +319,7 @@ export async function executeAuditRequest(
         callbacks.onStageChange({ stage: 'done', label: 'Complete', detail: 'Audit finished successfully.', progress: 100 })
         return data
 
-      } catch (err: any) {
+      } catch (err: unknown) {
         clearTimeout(timeoutId)
         abortSignal.removeEventListener('abort', handleExternalAbort)
 
