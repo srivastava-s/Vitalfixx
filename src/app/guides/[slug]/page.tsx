@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { ArrowRight, ArrowLeft, Clock, BookOpen, Zap } from 'lucide-react'
 import { guides, getGuideBySlug, getRelatedGuides, categoryColors, categoryLabels } from '@/data/guides'
 import { ArticleJsonLd } from '@/components/JsonLd'
+import DOMPurify from 'isomorphic-dompurify'
 
 // ── Static params for SSG ──
 export async function generateStaticParams() {
@@ -110,7 +111,7 @@ function renderContent(content: string) {
         <p
           key={`${i}-${j}`}
           style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.8, marginBottom: '0.5rem' }}
-          dangerouslySetInnerHTML={{ __html: formatted }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formatted) }}
         />
       )
     })
