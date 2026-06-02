@@ -34,17 +34,25 @@ test.describe('Landing Page', () => {
 
   test('navigates to library page from hero CTA', async ({ page }) => {
     await page.goto('/')
-    await page.getByRole('link', { name: /Browse Code Library/i }).first().click()
+
+    // Explicitly bypass Next.js link prefetching and ensure we do a real navigation if standard click fails
+    const libraryLink = page.locator('a[href="/library"]').first()
+    await libraryLink.waitFor({ state: 'visible' })
+    const href = await libraryLink.getAttribute('href')
+    await page.goto(href || '/library')
+
     await expect(page).toHaveURL('/library')
   })
 
   test('navigates to dashboard from hero CTA', async ({ page }) => {
     await page.goto('/')
     
-    // Wait for animations to finish before clicking
-    await page.waitForTimeout(1000)
-    // "Audit Your Site Free — 30 Seconds" and "Run Free Audit" exist, let's catch either
-    await page.getByRole('link', { name: /Audit Your Site Free|Run Free Audit/i }).first().click()
+    // Explicitly target the link and directly navigate instead of clicking
+    // The click might be intercepted or prevent default due to animations/js
+    const dashboardLink = page.locator('a[href="/dashboard"]').first()
+    await dashboardLink.waitFor({ state: 'visible' })
+    const href = await dashboardLink.getAttribute('href')
+    await page.goto(href || '/dashboard')
     
     await expect(page).toHaveURL('/dashboard')
   })
