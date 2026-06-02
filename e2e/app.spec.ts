@@ -42,7 +42,7 @@ test.describe('Landing Page', () => {
     await page.goto('/')
     
     // Wait for animations to finish before clicking
-    await page.waitForTimeout(1000)
+
     // "Audit Your Site Free — 30 Seconds" and "Run Free Audit" exist, let's catch either
     await page.getByRole('link', { name: /Audit Your Site Free|Run Free Audit/i }).first().click()
     
