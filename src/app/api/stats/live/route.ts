@@ -43,10 +43,11 @@ export async function GET() {
       since.setDate(since.getDate() - 365)
       const { data: allData } = await supabase
         .from('analytics_daily')
-        .select('total_audits')
+        .select('total_audits.sum()')
         .gte('date', since.toISOString().slice(0, 10))
+        .single()
 
-      totalAudits = allData?.reduce((sum, d) => sum + (d.total_audits || 0), 0) || 0
+      totalAudits = allData?.sum || 0
 
       // Reports shared
       const { count } = await supabase
