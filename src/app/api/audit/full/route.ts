@@ -13,6 +13,7 @@ import {
   getConnectionProfile, getLocationProfile,
   getRegionalInsights, rateMetric,
 } from '@/lib/audit-context'
+import dns from 'dns'
 
 // Vercel serverless function config — audit can take up to 120s
 export const maxDuration = 180
@@ -36,6 +37,9 @@ const PRIVATE_IP_PATTERNS = [
   /^169\.254\./,                         // link-local / AWS metadata
   /^0\./,                               // 0.0.0.0/8
   /^100\.(6[4-9]|[7-9]\d|1[0-2]\d)\./,  // CGNAT 100.64.0.0/10
+  /^127\./,                             // loopback
+  /^f[cd]/i,                            // Unique local address (IPv6)
+  /^fe80/i                              // Link local (IPv6)
 ]
 
 // IPv6-mapped IPv4 patterns (e.g. [::ffff:127.0.0.1], [::ffff:10.0.0.1])
@@ -43,19 +47,40 @@ const IPV6_MAPPED = /^\[?::ffff:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\]?$/i
 // Cloud metadata endpoints
 const METADATA_IPS = ['169.254.169.254', 'metadata.google.internal']
 
-function isBlockedHost(hostname: string): boolean {
-  const h = hostname.toLowerCase().replace(/^\[|\]$/g, '')
-  if (BLOCKED_HOSTS.includes(h) || BLOCKED_HOSTS.includes(`[${h}]`)) return true
-  if (METADATA_IPS.includes(h)) return true
+async function isBlockedHost(hostname: string): Promise<boolean> {
+  let h = hostname.toLowerCase().replace(/^\[|\]$/g, '')
+  // Strip trailing dot for proper evaluation (e.g., localhost.)
+  if (h.endsWith('.')) h = h.slice(0, -1)
+
+  const isLocal = (ipOrHost: string) => {
+    if (BLOCKED_HOSTS.includes(ipOrHost) || BLOCKED_HOSTS.includes(`[${ipOrHost}]`)) return true
+    if (METADATA_IPS.includes(ipOrHost)) return true
+    if (PRIVATE_IP_PATTERNS.some(p => p.test(ipOrHost))) return true
+    return false
+  }
+
+  // Synchronous checks
+  if (isLocal(h)) return true
+
   // Check IPv6-mapped IPv4 addresses
   const mapped = h.match(IPV6_MAPPED)
   if (mapped) {
     const ipv4 = mapped[1]
-    if (BLOCKED_HOSTS.includes(ipv4)) return true
-    if (PRIVATE_IP_PATTERNS.some(p => p.test(ipv4))) return true
-    if (METADATA_IPS.includes(ipv4)) return true
+    if (isLocal(ipv4)) return true
   }
-  return PRIVATE_IP_PATTERNS.some(p => p.test(h))
+
+  // Resolve DNS to prevent DNS rebinding or custom domains pointing to private IPs
+  try {
+    const lookups = await dns.promises.lookup(h, { all: true })
+    if (lookups && lookups.length > 0) {
+      if (lookups.some(record => isLocal(record.address))) return true
+    }
+  } catch (err: any) {
+    // If DNS fails to resolve, allow to proceed so fetch can throw its natural error,
+    // or log. For security, we don't necessarily need to block unresolved domains.
+  }
+
+  return false
 }
 
 // ── Rate limiter (in-memory) with periodic cleanup ──
@@ -329,7 +354,7 @@ export async function GET(req: NextRequest) {
   }
 
   // SSRF protection — block private/internal URLs
-  if (isBlockedHost(parsedUrl.hostname)) {
+  if (await isBlockedHost(parsedUrl.hostname)) {
     return NextResponse.json({ error: 'URLs pointing to internal or private networks are not allowed.' }, { status: 400 })
   }
 
