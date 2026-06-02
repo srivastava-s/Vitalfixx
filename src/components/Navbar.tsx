@@ -36,13 +36,15 @@ export default function Navbar() {
     const highTrafficRoutes = ['/library', '/checklist', '/tools', '/guides', '/docs', '/pricing', '/dashboard']
     const callback = () => highTrafficRoutes.forEach(prefetchRoute)
 
-    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-      const idleId = window.requestIdleCallback(callback, { timeout: 1500 })
-      return () => window.cancelIdleCallback(idleId)
+    if (typeof window !== 'undefined') {
+      if ('requestIdleCallback' in window) {
+        const idleId = window.requestIdleCallback(callback, { timeout: 1500 })
+        return () => window.cancelIdleCallback(idleId)
+      } else {
+        const timeoutId = setTimeout(callback, 600)
+        return () => clearTimeout(timeoutId)
+      }
     }
-
-    const timeoutId = window.setTimeout(callback, 600)
-    return () => window.clearTimeout(timeoutId)
   // router is stable in Next.js app router; keep effect one-time.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
