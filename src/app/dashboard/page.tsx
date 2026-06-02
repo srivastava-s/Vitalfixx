@@ -44,6 +44,8 @@ const ERROR_ICONS: Record<ErrorCategory, any> = {
   rate_limit: Ban, invalid_url: XCircle, unknown: AlertTriangle,
 }
 
+type TabId = 'overview' | 'opportunities' | 'diagnostics' | 'field' | 'siteaudit' | 'history' | 'analytics'
+
 export default function DashboardPage() {
   const [url, setUrl] = useState('')
   const [result, setResult] = useState<AuditResult | null>(null)
@@ -54,7 +56,7 @@ export default function DashboardPage() {
   const [location, setLocation] = useState('US East (Virginia)')
   const [connection, setConnection] = useState('4G (Fast)')
   const [runCount, setRunCount] = useState(0)
-  const [activeTab, setActiveTab] = useState<'overview' | 'opportunities' | 'diagnostics' | 'field' | 'siteaudit' | 'history' | 'analytics'>('overview')
+  const [activeTab, setActiveTab] = useState<TabId>('overview')
 
   // Progress tracking state
   const [elapsed, setElapsed] = useState(0)
@@ -768,8 +770,8 @@ export default function DashboardPage() {
                 { id: 'field', label: 'Field Data', icon: <Star size={13} /> },
                 { id: 'history', label: 'History', icon: <Clock size={13} /> },
                 { id: 'analytics', label: 'Analytics', icon: <BarChart3 size={13} /> },
-              ] as const).map(t => (
-                <button key={t.id} onClick={() => setActiveTab(t.id as any)} className={`tab-underline${activeTab === t.id ? ' active' : ''}`}>
+              ] as { id: TabId; label: string; icon: React.ReactNode }[]).map(t => (
+                <button key={t.id} onClick={() => setActiveTab(t.id)} className={`tab-underline${activeTab === t.id ? ' active' : ''}`}>
                   {t.icon} {t.label}
                 </button>
               ))}
