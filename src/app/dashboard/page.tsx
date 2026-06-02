@@ -186,11 +186,12 @@ export default function DashboardPage() {
         localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify({ result: data, url: targetUrl }))
       } catch { /* quota exceeded */ }
 
-    } catch (err: any) {
-      if (err.name === 'AbortError') {
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') {
         // User cancelled — don't show error
       } else {
-        const classified = err.category ? err as AuditError : classifyError(err)
+        const isAuditError = typeof err === 'object' && err !== null && 'category' in err
+        const classified = isAuditError ? err as AuditError : classifyError(err)
         setAuditError(classified)
         setError(classified.message)
       }
