@@ -78,6 +78,7 @@ export default function AuthModal({ onClose }: AuthModalProps) {
           </h2>
           <button
             onClick={onClose}
+            aria-label="Close"
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
               color: 'var(--text-muted)', padding: '0.25rem',
@@ -99,6 +100,7 @@ export default function AuthModal({ onClose }: AuthModalProps) {
             <Mail size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             <input
               type="email"
+              aria-label="Email address"
               placeholder="Email address"
               value={email}
               onChange={e => setEmail(e.target.value)}
@@ -116,6 +118,7 @@ export default function AuthModal({ onClose }: AuthModalProps) {
             <Lock size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             <input
               type="password"
+              aria-label="Password"
               placeholder="Password"
               value={password}
               onChange={e => setPassword(e.target.value)}

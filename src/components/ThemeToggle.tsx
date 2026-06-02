@@ -9,6 +9,7 @@ export default function ThemeToggle() {
       id="theme-toggle"
       onClick={toggle}
       title="Toggle theme"
+      aria-label="Toggle theme"
       style={{
         width: 36, height: 36, borderRadius: 8, border: '1px solid var(--border)',
         background: 'var(--bg-card)', cursor: 'pointer',
