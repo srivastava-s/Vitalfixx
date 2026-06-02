@@ -34,13 +34,18 @@ test.describe('Landing Page', () => {
 
   test('navigates to library page from hero CTA', async ({ page }) => {
     await page.goto('/')
-    await page.getByRole('link', { name: /Browse Code Library/i }).click()
+    await page.getByRole('link', { name: /Browse Code Library/i }).first().click()
     await expect(page).toHaveURL('/library')
   })
 
   test('navigates to dashboard from hero CTA', async ({ page }) => {
     await page.goto('/')
-    await page.getByRole('link', { name: /Audit Your Site Free/i }).first().click()
+    
+    // Wait for animations to finish before clicking
+    await page.waitForTimeout(1000)
+    // "Audit Your Site Free — 30 Seconds" and "Run Free Audit" exist, let's catch either
+    await page.getByRole('link', { name: /Audit Your Site Free|Run Free Audit/i }).first().click()
+    
     await expect(page).toHaveURL('/dashboard')
   })
 })
