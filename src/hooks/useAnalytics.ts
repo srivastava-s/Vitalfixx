@@ -10,7 +10,7 @@ import { useAuth } from '@/components/AuthProvider'
 interface ClientEvent {
   event_type: string
   user_id?: string | null
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 const FLUSH_INTERVAL = 5000  // 5 seconds
@@ -65,7 +65,7 @@ export function useAnalytics() {
     return () => window.removeEventListener('beforeunload', handleUnload)
   }, [flush])
 
-  const track = useCallback((type: string, metadata?: Record<string, any>) => {
+  const track = useCallback((type: string, metadata?: Record<string, unknown>) => {
     queue.current.push({
       event_type: type,
       user_id: user?.id || null,
