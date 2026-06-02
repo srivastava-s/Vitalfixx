@@ -26,30 +26,35 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: 22
+          cache: pnpm
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install
 
       # ── Quality checks (continue on error to collect all results) ──
 
       - name: Lint
         id: lint
-        run: npm run lint
+        run: pnpm run lint
         continue-on-error: true
 
       - name: Type-check
         id: typecheck
-        run: npm run type-check
+        run: pnpm run type-check
         continue-on-error: true
 
       - name: Tests
         id: tests
-        run: npm run test
+        run: pnpm run test
         continue-on-error: true
 
       - name: Install Playwright browsers
@@ -58,12 +63,12 @@ jobs:
 
       - name: E2E Tests
         id: e2e
-        run: npm run test:e2e
+        run: pnpm run test:e2e
         continue-on-error: true
 
       - name: Build
         id: build
-        run: npm run build
+        run: pnpm run build
         continue-on-error: true
 
       - name: Dependency audit

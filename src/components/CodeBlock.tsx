@@ -1,6 +1,7 @@
 'use client'
 import { useState, useMemo } from 'react'
 import { Check, Copy } from 'lucide-react'
+import DOMPurify from 'isomorphic-dompurify'
 
 interface Props {
   code: string
@@ -80,7 +81,7 @@ export default function CodeBlock({ code, language = 'javascript', filename }: P
           whiteSpace: 'pre',
           tabSize: 2,
         }}>
-          <code dangerouslySetInnerHTML={{ __html: highlightedCode }} />
+          <code dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(highlightedCode) }} />
         </pre>
       </div>
     </div>

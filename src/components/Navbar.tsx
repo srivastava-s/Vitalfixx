@@ -41,8 +41,8 @@ export default function Navbar() {
       return () => window.cancelIdleCallback(idleId)
     }
 
-    const timeoutId = window.setTimeout(callback, 600)
-    return () => window.clearTimeout(timeoutId)
+    const timeoutId = setTimeout(callback, 600)
+    return () => clearTimeout(timeoutId)
   // router is stable in Next.js app router; keep effect one-time.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
